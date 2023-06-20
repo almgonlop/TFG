@@ -2,11 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, FlatList,StyleSheet,TouchableOpacity } from 'react-native';
 import { firebase } from '../../firebase-config.js';
 
+///////////////////////////////
+////
+////      PANTALLA PARA EDITAR LOS MAZOS ELEGIDOS
+////
+//////////////////////////////////
+
+
 const EditCardScreen = () => {
   const [mazos, setMazos] = useState([]);
   const [usuarioMazos, setUsuarioMazos] = useState([]);
-  const usuario = firebase.auth().currentUser; //Usuario actualmente autenticado
-  const usuarioRef = firebase.firestore().collection('Usuarios').doc(usuario.uid); //Conseguir referencia al doc de la ID del usuario
+  const currentUserUid = firebase.auth().currentUser.uid; //Usuario actualmente autenticado
+  const usuarioRef = firebase.firestore().collection('Usuarios').doc(currentUserUid); //Conseguir referencia al doc de la ID del usuario
   
   useEffect(() => {
     const mazosRef = firebase.firestore().collection('Mazos');//COnseguir referencia a la colección Mazos

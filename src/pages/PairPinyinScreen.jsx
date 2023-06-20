@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { firebase } from '../../firebase-config.js';
 
+///////////////////////////////
+////
+////      PANTALLA DEL JUEGO DE PAREJA MODO DE PINYIN
+////
+//////////////////////////////////
+
+
 const PairPinyinScreen = () => {
   const [parejas, setParejas] = useState([]);
   const [parejasMezcladas, setParejasMezcladas] = useState([]);
@@ -13,18 +20,19 @@ const PairPinyinScreen = () => {
   const [juegoFinalizado, setJuegoFinalizado] = useState(false);
   const MAX_PAREJAS = 10; // Establecer el límite de parejas a mostrar
 
+  const currentUserUid = firebase.auth().currentUser?.uid;
+  const db = firebase.firestore();
   useEffect(() => {
-    const uid = firebase.auth().currentUser.uid;
-    const db = firebase.firestore();
-  
+    
     // Obtener los mazos suscritos por el usuario
-    const userMazosRef = db.collection('Usuarios').doc(uid).collection('Suscripciones');
-    userMazosRef.get().then((querySnapshot) => {
+    const userMazosRef = db.collection('Usuarios').doc(currentUserUid).collection('Suscripciones');
+    userMazosRef.onSnapshot((querySnapshot) => {
       const mazoPromises = querySnapshot.docs.map((doc) => {
         const mazoId = doc.id;
         return db.collection('Mazos').doc(mazoId).get();
       });
-  
+      
+      //consulta a los mazos y obtener el simbolo y el pinyin
       Promise.all(mazoPromises).then((mazoSnapshots) => {
         const mazosData = mazoSnapshots.map((snapshot) => snapshot.data());
         const parejasData = mazosData.flatMap((mazoData) => Object.values(mazoData));
@@ -32,10 +40,9 @@ const PairPinyinScreen = () => {
           const { palabra, pinyin } = subdoc;
           return { palabra, pinyin };
         });
-  
+        //se coge un conjunto aleatorio de parejas y se guarda
         const parejasAleatorias = shuffle(parejas).slice(0, MAX_PAREJAS);
         setParejas(parejasAleatorias);
-        setParejasMezcladas(shuffle(parejasAleatorias));
       });
     });
   }, []);
@@ -49,24 +56,26 @@ const PairPinyinScreen = () => {
     setCartasVisibles([]);
   }, [parejas]);
 
+   //Verificación si la selección es correcta o no
   const handleSelect = (index) => {
     const parejaSeleccionada = parejasMezcladas[index];
     const parejaCorrecta = parejas[parejaActual];
-  
+
+      //si la pareja es incorrecta
     if (parejaSeleccionada.pinyin !== parejaCorrecta.pinyin) {
-      setCartasVisibles([...cartasVisibles, index]);
-      setRespuestasIncorrectas([...respuestasIncorrectas, parejaSeleccionada]);
+      setCartasVisibles([...cartasVisibles, index]);//se mantiene esa carta en el juego
+      setRespuestasIncorrectas([...respuestasIncorrectas, parejaSeleccionada]);//la selección se guarda en respuestasIncorrectas
       setTimeout(() => {
-        setCartasVisibles(cartasVisibles.filter((item) => item !== index));
+        setCartasVisibles(cartasVisibles.filter((item) => item !== index));//eliminar la carta seleccionada incorrecta del arreglo cartasVisibles
       }, 1000);
-    } else {
-      setRespuestasCorrectas([...respuestasCorrectas, parejaSeleccionada]);
-      setCartasAcertadas([...cartasAcertadas, index]);
+    } else {//si se acierta 
+      setRespuestasCorrectas([...respuestasCorrectas, parejaSeleccionada]);//se guarda la pareja en respuestasCorrectas
+      setCartasAcertadas([...cartasAcertadas, index]);//se guarda la pareja en cartasAcertadas para el seguimiento
   
-      if (parejaActual + 1 < parejasMezcladas.length) {
-        setTimeout(() => {
+      if (parejaActual + 1 < parejasMezcladas.length) {//si todavia hay parejas restantes
+        setTimeout(() => {//avanza a la siguiente parejas si aun hay mas parejas para jugar
           setParejaActual(parejaActual + 1);
-          setCartasVisibles([]);
+          setCartasVisibles([]);//oculta las cartas
         }, 1000);
       } else {
         // Finalizar el juego
@@ -81,16 +90,16 @@ const PairPinyinScreen = () => {
   const mayor = respuestasCorrectas.length > respuestasIncorrectas.length ? 'correctas' : 'incorrectas';
 
   const renderItem = ({ item, index }) => {
-    const isCardVisible = cartasVisibles.includes(index);
-    const isCardCorrect = cartasAcertadas.includes(index);
+    const isCardVisible = cartasVisibles.includes(index);//compruebas la carta visible
+    const isCardCorrect = cartasAcertadas.includes(index);//compureba si es correcta
     const cardStyle = [styles.item];
   
     if (isCardVisible) {
-      cardStyle.push(styles.incorrectCard);
+      cardStyle.push(styles.incorrectCard);//le pone estilo a la selección incorrecta
     }
   
     if (isCardCorrect) {
-      cardStyle.push(styles.correctCard);
+      cardStyle.push(styles.correctCard);//le pone estilo a la selección correcta
     }
   
     return (
@@ -104,6 +113,7 @@ const PairPinyinScreen = () => {
     );
   };
 
+  //organizar aleatoriamente un array
   function shuffle(array) {
     const shuffledArray = [...array];
     for (let i = shuffledArray.length - 1; i > 0; i--) {
@@ -112,12 +122,11 @@ const PairPinyinScreen = () => {
     }
     return shuffledArray;
   }
+
+  //volver a generar otra tanda de parejas aleatoria cuando el juego se reinicia
   const generarParejasAleatorias = () => {
-    const uid = firebase.auth().currentUser.uid;
-    const db = firebase.firestore();
-  
     // Obtener los mazos suscritos por el usuario
-    const userMazosRef = db.collection('Usuarios').doc(uid).collection('Suscripciones');
+    const userMazosRef = db.collection('Usuarios').doc(currentUserUid).collection('Suscripciones');
     userMazosRef.get().then((querySnapshot) => {
       const mazoPromises = querySnapshot.docs.map((doc) => {
         const mazoId = doc.id;
@@ -134,7 +143,6 @@ const PairPinyinScreen = () => {
   
         const parejasAleatorias = shuffle(parejas).slice(0, MAX_PAREJAS);
         setParejas(parejasAleatorias);
-        setParejasMezcladas(shuffle(parejasAleatorias));
       });
     });
   };

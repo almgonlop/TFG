@@ -2,10 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet } from 'react-native';
 import { firebase } from '../../firebase-config';
 
+///////////////////////////////
+////
+////      PANTALLA PARA ELEGIR LA IMAGEN DE FONDO DE LAS TARJETAS
+////
+//////////////////////////////////
+
+
 const EditStyleScreen = () => {
   const [designUrls, setDesignUrls] = useState([]);
   const [selectedDesign, setSelectedDesign] = useState('');
-  const uid = firebase.auth().currentUser.uid;
+  const currentUserUid = firebase.auth().currentUser.uid;
 
   useEffect(() => {
     const storageRef = firebase.storage().ref().child('tarjetas'); //Referencia a la carpeta 'tarjeta' de Storage
@@ -25,7 +32,7 @@ const EditStyleScreen = () => {
 
   useEffect(() => {
   
-    const configRef = firebase.firestore().collection('UsuConfig').doc(uid);
+    const configRef = firebase.firestore().collection('UsuConfig').doc(currentUserUid);
   
     const unsubscribe = configRef.onSnapshot((doc) => {
       if (doc.exists) {
@@ -44,7 +51,7 @@ const EditStyleScreen = () => {
   //Acceder a la configuración del usuario y actualizar el diseño  por la url del seleccionado
   const handleSelectDesign = async (designUrl) => {
     try {
-      const configRef = firebase.firestore().collection('UsuConfig').doc(uid);
+      const configRef = firebase.firestore().collection('UsuConfig').doc(currentUserUid);
 
       await configRef.update({ design: designUrl });
       setSelectedDesign(designUrl);

@@ -9,7 +9,7 @@ import { firebase } from '../../firebase-config.js';
 
 ///////////////////////////////
 ////
-////      HE CONSEGUIDO QUE EN UN RECUADRO DE TEXTO PONER UNA PALABRA Y SE GUARDE EN LA BD
+////      PANTALLA PRINCIPAL
 ////
 //////////////////////////////////
 
@@ -20,12 +20,8 @@ export default function HomeScreen() {
   const [mazos, setMazos] = useState([]);
   const currentUserUid = firebase.auth().currentUser?.uid;
 
-  useEffect(() => {
-    const unsubscribe = firebase
-      .firestore()
-      .collection('Usuarios')
-      .doc(currentUserUid)
-      .collection('Suscripciones')
+  useEffect(() => {//Acceso actualizado a la colección Suscripciones del usuario
+    const unsubscribe = firebase.firestore().collection('Usuarios').doc(currentUserUid).collection('Suscripciones')
       .onSnapshot((snapshot) => {
         const mazoIds = snapshot.docs.map((doc) => doc.id);
         const mazoPromises = mazoIds.map((mazoId) => {
@@ -35,7 +31,6 @@ export default function HomeScreen() {
           const mazoData = mazoDocs.map((doc) => ({
             mazoId: doc.id,
             nombre: doc.data().nombre,
-            componentes: doc.data(), // Reemplaza con la ruta correcta a los componentes en tus documentos de mazo
           }));
           setMazos(mazoData);
         });
@@ -44,7 +39,7 @@ export default function HomeScreen() {
     return () => unsubscribe();
   }, []);
 
-  if (mazos.length === 0) {
+  if (mazos.length === 0) {//si no hya mazos muestra un mensaje
     return <View style={styles.container}><View style={styles.caja}><Text style={styles.titulo}>No hay mazos para mostrar.</Text>
     <Text style={styles.titulo}>Ve a los ajustes para añadir mazos.</Text></View></View>;
   }
@@ -53,49 +48,46 @@ export default function HomeScreen() {
   return (
     <ScrollView  style={styles.container}>
       <View style={styles.caja}>
-      <Text style={styles.titulo}>Estos son tus mazos actuales:</Text>
-      <View style={styles.columnContainer}>
-  {mazos.map((mazo, index) => (
-    mazo && (
-      <View key={mazo.mazoId || index} style={styles.columnItem}>
-        <Text style={styles.text}>{mazo.mazoId}</Text>
-      </View>
-    )
-  ))}
-</View>
+        <Text style={styles.titulo}>Estos son tus mazos actuales:</Text>
+        <View style={styles.columnContainer}>
+          {mazos.map((mazo, index) => (
+            mazo && (
+              <View key={mazo.mazoId || index} style={styles.columnItem}>
+                <Text style={styles.text}>{mazo.mazoId}</Text>
+              </View>
+            )
+          ))}
+        </View>
 
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Juego de Tarjetas')}>
+          <View style={styles.leftContent}>
+            <Text style={styles.simbolo}>寫</Text>
+          </View>
+          <Text style={styles.buttonText}>Tarjetas</Text>
+          <View style={styles.rightContent}>
+            <Icon name="arrow-right" size={20} color="white" />
+          </View>
+        </TouchableOpacity>
 
-      
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Juego de Mecanografía')}>
+          <View style={styles.leftContent}>
+            <Icon name="keyboard-o" size={20} color="red" />
+          </View>
+          <Text style={styles.buttonText}>Mecanografía</Text>
+          <View style={styles.rightContent}>
+            <Icon name="arrow-right" size={20} color="white" />
+          </View>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Juego de Tarjetas')}>
-        <View style={styles.leftContent}>
-          <Text style={styles.simbolo}>寫</Text>
-        </View>
-        <Text style={styles.buttonText}>Tarjetas</Text>
-        <View style={styles.rightContent}>
-          <Icon name="arrow-right" size={20} color="white" />
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Juego de Mecanografía')}>
-        <View style={styles.leftContent}>
-          <Icon name="keyboard-o" size={20} color="red" />
-        </View>
-        <Text style={styles.buttonText}>Mecanografía</Text>
-        <View style={styles.rightContent}>
-          <Icon name="arrow-right" size={20} color="white" />
-        </View>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Juego de Parejas')}>
-        <View style={styles.leftContent}>
-          <Icon name="clone" size={20} color="red" />
-        </View>
-        <Text style={styles.buttonText}>Parejas</Text>
-        <View style={styles.rightContent}>
-          <Icon name="arrow-right" size={20} color="white" />
-        </View>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Juego de Parejas')}>
+          <View style={styles.leftContent}>
+            <Icon name="clone" size={20} color="red" />
+          </View>
+          <Text style={styles.buttonText}>Parejas</Text>
+          <View style={styles.rightContent}>
+            <Icon name="arrow-right" size={20} color="white" />
+          </View>
+        </TouchableOpacity>
 
       </View>
     </ScrollView>
@@ -108,7 +100,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   columnItem: {
-    width: '50%', // Para mostrar en dos columnas, ajusta según tus necesidades
+    width: '50%', 
     paddingHorizontal: 10,
     marginBottom: 10,
   },
@@ -118,7 +110,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   caja: {
-    flexGrow: 1, // Ocupa el espacio restante en el contenedor principal
+    flexGrow: 1, 
     margin: 20,
     padding: 10,
     paddingTop:20,
@@ -144,7 +136,7 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', // Alinea los elementos a los extremos del contenedor
+    justifyContent: 'space-between', 
     margin: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,

@@ -3,6 +3,13 @@ import React from 'react';
 import { useNavigation } from "@react-navigation/native";
 
 import Icon from 'react-native-vector-icons/FontAwesome';
+
+///////////////////////////////
+////
+////      PANTALLA DEL JUEGO DE TARJETAS
+////
+//////////////////////////////////
+
 const CardGameScreen = () => {
   const navigation = useNavigation();
 

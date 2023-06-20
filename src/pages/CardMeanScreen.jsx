@@ -2,6 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, CheckBox, Animated, Image } from 'react-native';
 import { firebase } from '../../firebase-config.js';
 
+///////////////////////////////
+////
+////      PANTALLA DEL JUEGO DE TARJETA MODO DE SIGNIFICADO
+////
+//////////////////////////////////
+
 const CardMeanScreen = () => {
   const [mazos, setMazos] = useState([]);
   const [currentMazoIndex, setCurrentMazoIndex] = useState(0);
@@ -11,13 +17,14 @@ const CardMeanScreen = () => {
   const [config, setConfig] = useState({});
   const animatedValue = useRef(new Animated.Value(0)).current;
 
+  const currentUserUid = firebase.auth().currentUser.uid;
+  const db = firebase.firestore();
   useEffect(() => {
-    const uid = firebase.auth().currentUser.uid;
-    const db = firebase.firestore();
 
-    // Obtener los mazos suscritos por el usuario
-    const userMazosRef = db.collection('Usuarios').doc(uid).collection('Suscripciones');
-    userMazosRef.get().then((querySnapshot) => {
+    // Obtener los mazos suscritos del usuario
+    const userMazosRef = db.collection('Usuarios').doc(currentUserUid).collection('Suscripciones');
+
+    const unsubscribe = userMazosRef.onSnapshot((querySnapshot) => {
       const mazoIds = querySnapshot.docs.map((doc) => doc.id);
 
       // Obtener los datos de los mazos
@@ -39,12 +46,12 @@ const CardMeanScreen = () => {
         console.log(mazos);
       });
     });
+    return () => unsubscribe();
   }, []);
 
-
+// Obtener la configuración del usuario
   useEffect(() => {
-    const uid = firebase.auth().currentUser.uid;
-    const configRef = firebase.firestore().collection('UsuConfig').doc(uid);
+    const configRef = db.collection('UsuConfig').doc(currentUserUid);
     const unsubscribe = configRef.onSnapshot((doc) => {
       const data = doc.data();
       if (data) {
@@ -60,18 +67,22 @@ const CardMeanScreen = () => {
 
     return () => unsubscribe();
   }, []);
+
   useEffect(() => {
-    animatedValue.setValue(0); // Reiniciar la animación al cambiar la tarjeta actual
+    animatedValue.setValue(0); //Reiniciar la animación al cambiar la tarjeta actual
   }, [currentMazoIndex]);
 
+  //Mostar el pinyin
   const togglePinyin = () => {
     setShowPinyin(!showPinyin);
   };
 
+  //Mostar el color del tono
   const toggleColor = () => {
     setShowColor(!showColor);
   };
 
+  //Ir al siguiente mazo
   const goToNextMazo = () => {
     if (currentMazoIndex < mazos.length - 1) {
       setCurrentMazoIndex(currentMazoIndex + 1);
@@ -79,6 +90,7 @@ const CardMeanScreen = () => {
     }
   };
 
+  //Ir al anterior mazo
   const goToPrevMazo = () => {
     if (currentMazoIndex > 0) {
       setCurrentMazoIndex(currentMazoIndex - 1);
@@ -87,20 +99,24 @@ const CardMeanScreen = () => {
   };
 
   const currentMazo = mazos[currentMazoIndex];
+
+  //Guardar cada palabra de pinyintono
   const pinyintonoWords = currentMazo && currentMazo.pinyintono ? currentMazo.pinyintono.split(' ') : [];
 
+  //Guardar cada caracter de 'palabra' (los simbolos)
   const symbolChars = currentMazo && currentMazo.palabra ? currentMazo.palabra.split('') : [];
-
-  const words = pinyintonoWords.map((word, index) => {
+  
+  //Extrae los números que se encuentran en pinyintonoWords para identificar el tono y pintar el simbolo
+  const words = pinyintonoWords.map((word, index) => {//iteracion sobre cada palabra de pinyintonoWords
     const style = {};
     const tones = {};
 
     for (const field in config) {
       if (config[field]) {
-        tones[field.slice(-1)] = config[field];
+        tones[field.slice(-1)] = config[field]; 
       }
     }
-
+    
     for (let i = 0; i < word.length; i++) {
       const num = parseInt(word[i], 10);
       if (tones[num]) {
@@ -119,16 +135,18 @@ const CardMeanScreen = () => {
     );
   });
 
+  // Animación de girar la tarjeta
   const handleFlip = () => {
     Animated.timing(animatedValue, {
       toValue: showAnswer ? 0 : 180,
-      duration: 500,
-      useNativeDriver: true,
+      
     }).start(() => {
       setShowAnswer(!showAnswer);
     });
   };
 
+  /*Estilos para la parte frontal y trasera de la tarjeta.
+    Necesarios para poder ver la animación de rotación y que el contenido de las tarjetas se vea  */
   const interpolatedRotateFront = animatedValue.interpolate({
     inputRange: [0, 180],
     outputRange: ['0deg', '180deg'],
@@ -152,53 +170,57 @@ const CardMeanScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.caja}>
-      <Text style={styles.text}>¡Presiona la tarjeta para darle la vuelta!</Text>
-      <TouchableOpacity style={styles.card} onPress={handleFlip}>
-      <Animated.View style={[styles.cardFront, frontAnimatedStyle]}>
-          <Image source={{ uri: designUrl }} style={styles.backgroundImageTop} />
-          {showAnswer ? (
-            <Text style={styles.text}></Text>
-          ) : (
-            <View style={styles.wordContainer}>
-              <Text style={styles.word}>{showAnswer? currentMazo && currentMazo.palabra
-    : showColor
-    ? currentMazo && words
-    : currentMazo && currentMazo.palabra}</Text>
-              <Text style={styles.text}>
-  {showAnswer
-    ? currentMazo && ''
-    : showPinyin
-    ? currentMazo && currentMazo.pinyin
-    : currentMazo && ''}
-</Text>
-            </View>
-          )}
-        </Animated.View>
-        <Animated.View style={[styles.cardBack, backAnimatedStyle]}>
-          <Image source={{ uri: designUrl }} style={[styles.backgroundImage]} />
-          {showAnswer ? (
-            <View style={styles.wordContainer}>
-              <Text style={styles.word}>{currentMazo && currentMazo.significado}</Text>
-            </View>
-          ) : (
-            <Text style={styles.text}></Text>
-          )}
-        </Animated.View>
-      </TouchableOpacity>
-      <View style={styles.checkboxContainer}>
-        <CheckBox value={showPinyin} onValueChange={togglePinyin} />
-        <Text style={styles.checkboxLabel}>Mostrar pinyin</Text>
-        <CheckBox value={showColor} onValueChange={toggleColor} />
-        <Text style={styles.checkboxLabel}>Mostrar color de tonos</Text>
-      </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={goToPrevMazo}>
-          <Text style={styles.buttonText}>Anterior</Text>
+        <Text style={styles.text}>¡Presiona la tarjeta para darle la vuelta!</Text>
+        <TouchableOpacity style={styles.card} onPress={handleFlip}>
+          <Animated.View style={[styles.cardFront, frontAnimatedStyle]}>
+            <Image source={{ uri: designUrl }} style={styles.backgroundImageTop} />
+            {showAnswer ? (
+              <Text style={styles.text}></Text>
+            ) : (
+              <View style={styles.wordContainer}>
+                <Text style={styles.word}>{showAnswer? currentMazo && currentMazo.palabra
+                  : showColor
+                  ? currentMazo && words
+                  : currentMazo && currentMazo.palabra}</Text>
+                <Text style={styles.text}>
+                  {showAnswer
+                    ? currentMazo && ''
+                    : showPinyin
+                    ? currentMazo && currentMazo.pinyin
+                    : currentMazo && ''}
+                </Text>
+              </View>
+            )}
+          </Animated.View>
+          
+          <Animated.View style={[styles.cardBack, backAnimatedStyle]}>
+            <Image source={{ uri: designUrl }} style={[styles.backgroundImage]} />
+            {showAnswer ? (
+              <View style={styles.wordContainer}>
+                <Text style={styles.word}>{currentMazo && currentMazo.significado}</Text>
+              </View>
+            ) : (
+              <Text style={styles.text}></Text>
+            )}
+          </Animated.View>
+
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={goToNextMazo}>
-          <Text style={styles.buttonText}>Siguiente</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.checkboxContainer}>
+          <CheckBox value={showPinyin} onValueChange={togglePinyin} />
+          <Text style={styles.checkboxLabel}>Mostrar pinyin</Text>
+          <CheckBox value={showColor} onValueChange={toggleColor} />
+          <Text style={styles.checkboxLabel}>Mostrar color de tonos</Text>
+        </View>
+        
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={goToPrevMazo}>
+            <Text style={styles.buttonText}>Anterior</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={goToNextMazo}>
+            <Text style={styles.buttonText}>Siguiente</Text>
+          </TouchableOpacity>
+        </View>
+
       </View>
     </View>
   );
@@ -211,7 +233,7 @@ const styles = {
     backgroundColor: '#E95050'
   },
   caja: {
-    flexGrow: 1, // Ocupa el espacio restante en el contenedor principal
+    flexGrow: 1, 
     alignItems: 'center',
     justifyContent: 'center',
     margin: 20,

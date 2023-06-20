@@ -3,17 +3,23 @@ import { View, Text, TouchableOpacity, StyleSheet,ScrollView} from 'react-native
 import { firebase } from '../../firebase-config.js';
 import { CirclePicker } from 'react-color';
 
+///////////////////////////////
+////
+////      PANTALLA PARA ELEGIR LOS TONOS
+////
+//////////////////////////////////
+
+
 export default function EditToneScreen() {
   const [tono1, setTono1] = useState('');
   const [tono2, setTono2] = useState('');
   const [tono3, setTono3] = useState('');
   const [tono4, setTono4] = useState('');
   const [tonoSeleccionado, setTonoSeleccionado] = useState('');
-
+  const currentUserUid = firebase.auth().currentUser.uid;
   //Carga la configuracón del usuario
   useEffect(() => {
-    const uid = firebase.auth().currentUser.uid;
-    const unsubscribe = firebase.firestore().collection('UsuConfig').doc(uid)
+    const unsubscribe = firebase.firestore().collection('UsuConfig').doc(currentUserUid)
       .onSnapshot(doc => {
         if (doc.exists) {
           const data = doc.data();
@@ -33,8 +39,7 @@ export default function EditToneScreen() {
   
   //Guardar la configuración de los tonos del usuario
   const guardarCambios = () => {
-    const uid = firebase.auth().currentUser.uid;
-    firebase.firestore().collection('UsuConfig').doc(uid)
+    firebase.firestore().collection('UsuConfig').doc(currentUserUid)
       .set({
         tono1,
         tono2,
@@ -49,12 +54,12 @@ export default function EditToneScreen() {
       });
   };
   
-  //cambia el tono
+  //Cambia el tono
   const handleChange = (color, setTono) => {
     setTono(color);
   };
 
-  //actualiza el tono
+  //Actualiza el tono
   const handleTonoSeleccionado = tono => {
     setTonoSeleccionado(tono);
   };

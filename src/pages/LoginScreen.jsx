@@ -1,10 +1,13 @@
 import {StyleSheet, Text, TouchableOpacity, View, ImageBackground } from 'react-native';
-import React, {useEffect} from 'react';
-import { initializeApp} from 'firebase/app';
-import { firebaseConfig } from "../../firebase-config";
+import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 
-const app= initializeApp(firebaseConfig);
+///////////////////////////////
+////
+////      PANTALLA INICIAL
+////
+//////////////////////////////////
+
 
 export default function LoginScreen(){
   const navigation=useNavigation();

@@ -1,22 +1,19 @@
 import {StyleSheet, Button, TextInput, View,TouchableOpacity, Text } from 'react-native';
-import React, {useEffect} from 'react';
+import React from 'react';
 import { getAuth, signInWithEmailAndPassword} from 'firebase/auth';
 import { initializeApp} from 'firebase/app';
 import { firebaseConfig } from "../../firebase-config";
 import { useNavigation } from '@react-navigation/native';
 
-import { firebase } from '../../firebase-config.js';
-
 
 const app= initializeApp(firebaseConfig);
 const auth= getAuth(app);
-//auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);//BORRAR ESTO CUANDO TERMINE LAS PRUEBAS DE LOS USUARIOS PERMANENTES
-const adduid = firebase.firestore().collection('Usuarios');
 
-
-/////////////////////////////////////
-////////  ESTE ES EL LOGIN CORRECTO////
-/////////////////////////////////////////////////
+///////////////////////////////
+////
+////      PANTALLA DEL LOGIN
+////
+//////////////////////////////////
 
 
 
@@ -26,13 +23,14 @@ export default function SignInScreen(){
   const navigation=useNavigation();
   auth.languageCode = 'es';
 
+  //Incio de sesión facilitado por Firebase Authetication
 const handleSignIn=() => {
   signInWithEmailAndPassword(auth, email, password)
   .then((userCredential) => {
       const user = userCredential.user;
       console.log(user);
       console.log('Iniciado');
-      navigation.navigate('Home');
+      navigation.navigate('Home');//Si se logea con éxito pasa a la página principal
   })
   .catch((error) => {
     // Manejar el error
@@ -59,20 +57,7 @@ const handleSignIn=() => {
     alert(errorMessage);
   })
 }
-  //BORRAR ESTO CUANDO TERMINE LAS PRUEBAS DE LOS USUARIOS PERMANENTES
-  //-----------------
- /* useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
-      if (user) {
-        // Usuario conectado, navegar a la pantalla principal
-        navigation.navigate('Home')
-      }
-    })
 
-    return unsubscribe
-  }, [])*/
-
-  //--------------------------------------------------------------
   return(
     <View style={styles.form}>
                 <Text style={styles.text}>E-mail</Text>

@@ -3,12 +3,18 @@ import { Text, View, FlatList,StyleSheet,TouchableOpacity } from 'react-native';
 import { firebase } from '../../firebase-config.js';
 import { useNavigation } from '@react-navigation/native';
 
+///////////////////////////////
+////
+////      PANTALLA PARA ESCOGER MAZOS DESPUÉS DE INICIAR SESIÓN
+////
+//////////////////////////////////
+
 
 const CardFirstChoice = () => {
   const [mazos, setMazos] = useState([]);
   const [usuarioMazos, setUsuarioMazos] = useState([]);
-  const usuario = firebase.auth().currentUser; //Usuario actualmente autenticado
-  const usuarioRef = firebase.firestore().collection('Usuarios').doc(usuario.uid); //Conseguir referencia al doc de la ID del usuario
+  const currentUserUid = firebase.auth().currentUser?.uid; //Usuario actualmente autenticado
+  const usuarioRef = firebase.firestore().collection('Usuarios').doc(currentUserUid); //Conseguir referencia al doc de la ID del usuario
   
   const navigation=useNavigation();
 

@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, Button, CheckBox, Animated,Image,TouchableOpacity } from 'react-native';
 import { firebase } from '../../firebase-config.js';
 
+///////////////////////////////
+////
+////      PANTALLA DEL JUEGO DE MECANOGRAFÍA
+////
+//////////////////////////////////
+
 const TypeScreen = () => {
   const [userMazos, setUserMazos] = useState([]);
   const [mazoIndex, setMazoIndex] = useState(0);
@@ -14,14 +20,15 @@ const TypeScreen = () => {
   const [intervalId, setIntervalId] = useState(null); // Almacenar el ID del intervalo
   const [showColor, setShowColor] = useState(false);
   const [config, setConfig] = useState({});
+  const currentUserUid = firebase.auth().currentUser.uid;
+  const db = firebase.firestore();
 
   useEffect(() => {
-    const uid = firebase.auth().currentUser.uid;
-    const db = firebase.firestore();
-
+  
     // Obtener los mazos suscritos por el usuario
-    const userMazosRef = db.collection('Usuarios').doc(uid).collection('Suscripciones');
-    userMazosRef.get().then((querySnapshot) => {
+    const userMazosRef = db.collection('Usuarios').doc(currentUserUid).collection('Suscripciones');
+    
+    const unsubscribe = userMazosRef.onSnapshot((querySnapshot) => {
       const mazoIds = querySnapshot.docs.map((doc) => doc.id);
 
       // Obtener los datos de los mazos
@@ -42,10 +49,13 @@ const TypeScreen = () => {
         setUserMazos(mazos);
       });
     });
+
+    return () => unsubscribe();
   }, []);
+
+// Obtener la configuración del usuario
   useEffect(() => {
-    const uid = firebase.auth().currentUser.uid;
-    const configRef = firebase.firestore().collection('UsuConfig').doc(uid);
+    const configRef = db.collection('UsuConfig').doc(currentUserUid);
     const unsubscribe = configRef.onSnapshot((doc) => {
       const data = doc.data();
       if (data) {
@@ -61,6 +71,20 @@ const TypeScreen = () => {
 
     return () => unsubscribe();
   }, []);
+
+  // Formatear el timepo transcurrido desde que empezó el juego hasta que se completó
+const formatTimeElapsed = (startTime, endTime) => {
+  if (startTime === 0 || endTime === 0) {
+    return '00:00';
+  }
+
+  const timeElapsed = Math.floor((endTime - startTime) / 1000); // Tiempo transcurrido en segundos
+  const minutes = Math.floor(timeElapsed / 60);
+  const seconds = timeElapsed % 60;
+  const formattedTime = `${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+  return formattedTime;
+};
+
   useEffect(() => {
     // Iniciar el temporizador cuando el juego comienza
     if (gameStarted) {
@@ -78,11 +102,13 @@ const TypeScreen = () => {
     }
   }, [gameStarted]);
 
+  // Cunado el usuario escribe realiza la verificación
   const handleAnswerChange = (value) => {
     setAnswerValue(value);
     checkAnswer(value);
   };
 
+  // Comprueba si lo que sse ha escrito es correcto. Pasa a la siguiente palabra o para el juego
   const checkAnswer = (value) => {
     const mazo = userMazos[mazoIndex] || {};
     if (value === mazo.pinyin || value === mazo.pinyintono) {
@@ -111,16 +137,22 @@ const TypeScreen = () => {
     setEndTime(0);
     setScore(0);
   };
+
+  // Mostar el color del tono
   const toggleColor = () => {
     setShowColor(!showColor);
   };
+
   const mazo = userMazos[mazoIndex] || {};
+
+  //Guardar cada palabra de pinyintono
   const pinyintonoWords = mazo && mazo.pinyintono ? mazo.pinyintono.split(' ') : [];
 
+  //Guardar cada caracter de 'palabra' (los simbolos)
   const symbolChars = mazo && mazo.palabra ? mazo.palabra.split('') : [];
 
-
-  const words = pinyintonoWords.map((word, index) => {
+  //Extrae los números que se encuentran en pinyintonoWords para identificar el tono y pintar el simbolo
+  const words = pinyintonoWords.map((word, index) => {//iteracion sobre cada palabra de pinyintonoWords
     const style = {};
     const tones = {};
 
@@ -152,7 +184,7 @@ const TypeScreen = () => {
     const seconds = timeElapsed % 60;
     const formattedTime = `${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
 
-    return (
+    return (// Devuelve la interfaz del juego cuando finaliza
       <View style={styles.caja}>
         <Text style={styles.completedMessage}>¡Completado!</Text>
         <Text style={styles.text}>Tiempo transcurrido: {formattedTime}</Text>
@@ -171,7 +203,7 @@ const TypeScreen = () => {
  
     <View style={styles.container}>
       <View  style={styles.caja}>
-      {!gameStarted ? (
+      {!gameStarted ? (// Muestra una pantalla donde da las introducciones para completar el juego
         <><Text style={styles.text}>Para acertar el simbolo puedes escribir la respuesta de dos formas.</Text>
         <Text style={styles.text}>Ejemplo: 妈妈</Text>
         <Text style={styles.text}>Respuestas: mā ma / ma1 ma0</Text>
@@ -180,7 +212,7 @@ const TypeScreen = () => {
           <Text style={styles.buttonText}>Comenzar</Text>
         </TouchableOpacity>
         </>
-      ) : (
+      ) : (// Muestra el juego
         <><Text style={styles.text}>Escribe el pinyin correspondiente</Text>
         <View style={styles.card}>
           <Animated.View style={[styles.cardFront]}>
@@ -207,17 +239,7 @@ const TypeScreen = () => {
   );
 };
 
-const formatTimeElapsed = (startTime, endTime) => {
-  if (startTime === 0 || endTime === 0) {
-    return '00:00';
-  }
 
-  const timeElapsed = Math.floor((endTime - startTime) / 1000); // Tiempo transcurrido en segundos
-  const minutes = Math.floor(timeElapsed / 60);
-  const seconds = timeElapsed % 60;
-  const formattedTime = `${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
-  return formattedTime;
-};
 
 const styles = StyleSheet.create({
   container: {

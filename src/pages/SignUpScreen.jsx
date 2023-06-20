@@ -1,5 +1,5 @@
 import {StyleSheet, Button, TextInput, View, TouchableOpacity, Text  } from 'react-native';
-import React, {useEffect} from 'react';
+import React from 'react';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword} from 'firebase/auth';
 import { initializeApp} from 'firebase/app';
 import { firebaseConfig } from "../../firebase-config";
@@ -10,12 +10,13 @@ import { firebase } from '../../firebase-config.js';
 
 const app= initializeApp(firebaseConfig);
 const auth= getAuth(app);
-const adduid = firebase.firestore().collection('Usuarios');
-//auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);//BORRAR ESTO CUANDO TERMINE LAS PRUEBAS DE LOS USUARIOS PERMANENTES
 
-/////////////////////////////////////
-////////  ESTE ES EL REGISTER////
-/////////////////////////////////////////////////
+
+///////////////////////////////
+////
+////      PANTALLA DEL REGISTRO DE USUARIO
+////
+//////////////////////////////////
 
 
 
@@ -28,17 +29,14 @@ export default function SignUpScreen(){
   
   
   const handleCreateAccount=() => {
-    if (password === passwordConfirm) {
+    if (password === passwordConfirm) {//si la contraseña se ha puesto correctamente procede a registrar al usuario
     createUserWithEmailAndPassword(auth,email, password)
     .then((userCredential) => {
         const user = userCredential.user;
-        ///Esto es para almacenar la uid del usuario una vez se cree
         const uid = user.uid;
         const usuConfigRef = firebase.firestore().collection('UsuConfig').doc(uid);
-        adduid.add({
-          uid: uid,
-        });
-        usuConfigRef.set({
+       
+        usuConfigRef.set({//al crearse la cuenta se le añade una configuración predeterminada al usuario
           uid: uid,
           tono0: 'black',
           tono1: 'red',
@@ -47,9 +45,9 @@ export default function SignUpScreen(){
           tono4: 'orange',
           design: 'https://firebasestorage.googleapis.com/v0/b/tfgchinodef.appspot.com/o/tarjetas%2Ftarjeta1.jpg?alt=media&token=c14835c4-4957-4178-85c0-c8cc06c76842'
         });
-        console.log(user.email);
+        
         console.log('Cuenta creada');
-        navigation.navigate('Primera elección')
+        navigation.navigate('Primera elección')//Se va a la pantalla de Primera elección
     })
     .catch((error) => {
       // Manejar el error
@@ -75,34 +73,25 @@ export default function SignUpScreen(){
     alert("Las contraseñas no coinciden");
   }
 }
-  //BORRAR ESTO CUANDO TERMINE LAS PRUEBAS DE LOS USUARIOS PERMANENTES
-  //-----------------
-/*  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
-      if (user) {
-        // Usuario conectado, navegar a la pantalla principal
-        navigation.navigate('Home')
-      }
-    })
-
-    return unsubscribe
-  }, [])
-*/
-  //--------------------------------------------------------------
 
   return(
     <View style={styles.form}>
       <Text style={styles.text}>E-mail</Text>
-                <TextInput style={styles.input} onChangeText={(text)=>setEmail(text)} name='email' placeholder="ejemplo@email.com" ></TextInput>
-                <Text style={styles.text}>Contraseña *</Text>
-                <TextInput style={styles.input} onChangeText={(text)=>setPassword(text)} name='password' placeholder="********" secureTextEntry></TextInput>
-                <Text style={styles.text}>Confirme su contraseña</Text>
-                <TextInput style={styles.input} onChangeText={(text)=>setPasswordConfirm(text)} name='password-confirm' placeholder="********" secureTextEntry></TextInput>
-                <Text style={styles.norma}>* La contraseña debe contener mínimo 6 carácteres</Text>
-                <TouchableOpacity style={styles.button} onPress={handleCreateAccount}>
-                  <Text style={styles.buttonText}>Registrarse</Text>
-                </TouchableOpacity>
-            </View>
+      {/*Con el 'onChangeText' lo que se escriba en los input se guarda es los estados correspondientes*/}
+      <TextInput style={styles.input} onChangeText={(text)=>setEmail(text)} name='email' placeholder="ejemplo@email.com" ></TextInput>
+      
+      <Text style={styles.text}>Contraseña *</Text>
+      <TextInput style={styles.input} onChangeText={(text)=>setPassword(text)} name='password' placeholder="********" secureTextEntry></TextInput>
+                
+      <Text style={styles.text}>Confirme su contraseña</Text>
+      <TextInput style={styles.input} onChangeText={(text)=>setPasswordConfirm(text)} name='password-confirm' placeholder="********" secureTextEntry></TextInput>
+      <Text style={styles.norma}>* La contraseña debe contener mínimo 6 carácteres</Text>
+
+      {/*Al presionar el botón se activa el proceso de 'handleCreateAccount' */}
+      <TouchableOpacity style={styles.button} onPress={handleCreateAccount}>
+        <Text style={styles.buttonText}>Registrarse</Text>
+      </TouchableOpacity>
+      </View>
   )
 }
 

@@ -1,7 +1,14 @@
 import { StyleSheet, Text, View,TouchableOpacity} from 'react-native'
-import React, {useState} from 'react';
+import React from 'react';
 import { useNavigation } from "@react-navigation/native";
 import Icon from 'react-native-vector-icons/FontAwesome';
+
+///////////////////////////////
+////
+////      PANTALLA DEL JUEGO DE PAREJAS
+////
+//////////////////////////////////
+
 
 const PairGameScreen = () => {
   const navigation = useNavigation();

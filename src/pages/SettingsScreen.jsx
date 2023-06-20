@@ -4,9 +4,18 @@ import { useNavigation } from "@react-navigation/native";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { getAuth, signOut } from 'firebase/auth';//ESTO ES PARA EL BOTON DE CERRAR SESION
 
+///////////////////////////////
+////
+////      PANTALLA DE AJUSTES
+////
+//////////////////////////////////
+
+
 const SettingsScreen = () => {
   const navigation = useNavigation();
   const auth = getAuth();
+  
+  //función para cerrar sesión
   const handleSignOut = async () => {
     signOut(auth)
       .then(() => {
