@@ -27,9 +27,4 @@ export const firebaseConfig = {
 if (!firebase.apps.length){
   firebase.initializeApp(firebaseConfig);
 }
-firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);//borrar cuando termine co lo del usuario permanente
 export {firebase};
-
-//const app = initializeApp(firebaseConfig);
-//const analytics = getAnalytics(app);
-
