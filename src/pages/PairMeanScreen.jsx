@@ -66,7 +66,7 @@ const PairMeanScreen = () => {
       setRespuestasIncorrectas([...respuestasIncorrectas, parejaSeleccionada]);//la selección se guarda en respuestasIncorrectas
       setTimeout(() => {
         setCartasVisibles(cartasVisibles.filter((item) => item !== index));//eliminar la carta seleccionada incorrecta del arreglo cartasVisibles
-      }, 1000);
+      }, 1000);                                                           //de esta manera se elima el estilo 'incorrectCard'
     } else {//si se acierta 
       setRespuestasCorrectas([...respuestasCorrectas, parejaSeleccionada]);//se guarda la pareja en respuestasCorrectas
       setCartasAcertadas([...cartasAcertadas, index]);//se guarda la pareja en cartasAcertadas para el seguimiento
@@ -90,7 +90,7 @@ const PairMeanScreen = () => {
 
   const renderItem = ({ item, index }) => {
     const isCardVisible = cartasVisibles.includes(index);//compruebas la carta visible
-    const isCardCorrect = cartasAcertadas.includes(index);//compureba si es correcta
+    const isCardCorrect = cartasAcertadas.includes(index);//comprueba si es correcta
     const cardStyle = [styles.item];
   
     if (isCardVisible) {

@@ -72,7 +72,7 @@ const TypeScreen = () => {
     return () => unsubscribe();
   }, []);
 
-  // Formatear el timepo transcurrido desde que empezó el juego hasta que se completó
+  // Formatear el tiempo transcurrido desde que empezó el juego hasta que se completó
 const formatTimeElapsed = (startTime, endTime) => {
   if (startTime === 0 || endTime === 0) {
     return '00:00';

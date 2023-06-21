@@ -2,8 +2,6 @@ import { ScrollView, Text, View, StyleSheet,TouchableOpacity } from 'react-nativ
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-///////////
-
 import { firebase } from '../../firebase-config.js';
 
 
